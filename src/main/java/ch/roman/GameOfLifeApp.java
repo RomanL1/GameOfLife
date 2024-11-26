@@ -32,8 +32,8 @@ public class GameOfLifeApp
 		frame.setResizable( false );
 
 		AtomicBoolean started = new AtomicBoolean( false );
-		Util.sleep( 1000 );
-		new Thread( gameOfLife ).start();
+		//		Util.sleep( 1000 );
+		//		new Thread( gameOfLife ).start();
 		frame.addKeyListener( new KeyListener()
 		{
 			@Override
@@ -41,12 +41,12 @@ public class GameOfLifeApp
 			{
 				if ( e.getKeyChar() == ' ' )
 				{
-//					if ( !started.get() )
-//					{
-//						started.set( true );
-//						new Thread( gameOfLife ).start();
-//
-//					}
+					if ( !started.get() )
+					{
+						started.set( true );
+						new Thread( gameOfLife ).start();
+
+					}
 				}
 			}
 

@@ -13,7 +13,7 @@ public class GameOfLifeGUI extends JPanel
 
 	private final GameOfLife gameOfLife;
 	private final int size;
-	private final int cellSize; // Adjust as needed
+	private final int cellSize;
 	private BufferedImage bufferedImage;
 
 	public GameOfLifeGUI ( GameOfLife gameOfLife, int size, int scale )
@@ -24,6 +24,9 @@ public class GameOfLifeGUI extends JPanel
 		int width = size * cellSize;
 		int height = size * cellSize;
 		setPreferredSize( new Dimension( width, height ) );
+
+		// Initialize the buffered image
+		bufferedImage = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
 	}
 
 	@Override
@@ -31,55 +34,17 @@ public class GameOfLifeGUI extends JPanel
 	{
 		super.paintComponent( g );
 
-		// Initialize or update the buffered image
-		if ( bufferedImage == null || bufferedImage.getWidth() != getWidth()
-				|| bufferedImage.getHeight() != getHeight() )
-		{
-			Board board = null;
-			try
-			{
-				board = gameOfLife.getNextBoard();
-				log.info( "Start board with generation: " + board.getGeneration() );
-			}
-			catch ( InterruptedException e )
-			{
-				throw new RuntimeException( e );
-			}
-			bufferedImage = new BufferedImage( getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB );
-			renderBufferedImage( board );
-		}
-
 		// Draw the buffered image
 		g.drawImage( bufferedImage, 0, 0, null );
 	}
 
-	private void renderBufferedImage ( Board board )
-	{
-		Graphics2D g2d = bufferedImage.createGraphics();
-		g2d.setRenderingHint( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED );
-
-		for ( int x = 0; x < size; x++ )
-		{
-			for ( int y = 0; y < size; y++ )
-			{
-				g2d.setColor( board.isCellAlive( x, y ) ? Color.WHITE : Color.BLACK );
-				int x1 = x * cellSize;
-				int y1 = y * cellSize;
-				g2d.fillRect( x1, y1, cellSize, cellSize );
-			}
-		}
-
-		g2d.dispose(); // Dispose of the graphics context
-	}
-
-	// Call this method to update the buffered image when the board state changes
 	public void printBoard ()
 	{
 		Board board = null;
 		try
 		{
 			board = gameOfLife.getNextBoard();
-			log.info( "Updating buffered image with generation: " + board.getGeneration() );
+			//log.info( "Updating buffered image with generation: " + board.getGeneration() );
 		}
 		catch ( InterruptedException e )
 		{
@@ -90,5 +55,37 @@ public class GameOfLifeGUI extends JPanel
 		repaint();
 	}
 
+	private void renderBufferedImage ( Board board )
+	{
+		int width = size * cellSize;
+		int height = size * cellSize;
+		int[] pixels = new int[width * height];
+
+		int aliveColor = Color.WHITE.getRGB();
+		int deadColor = Color.BLACK.getRGB();
+
+		boolean[][] state = board.getStateArray();
+
+		for ( int y = 0; y < size; y++ )
+		{
+			int yOffset = y * cellSize;
+			for ( int x = 0; x < size; x++ )
+			{
+				int color = state[x][y] ? aliveColor : deadColor;
+				int xOffset = x * cellSize;
+				// Fill the cell area in the pixels array
+				for ( int dy = 0; dy < cellSize; dy++ )
+				{
+					int pixelIndex = ( yOffset + dy ) * width + xOffset;
+					for ( int dx = 0; dx < cellSize; dx++ )
+					{
+						pixels[pixelIndex + dx] = color;
+					}
+				}
+			}
+		}
+
+		bufferedImage.setRGB( 0, 0, width, height, pixels, 0, width );
+	}
 }
 

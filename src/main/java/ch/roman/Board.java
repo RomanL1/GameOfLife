@@ -76,4 +76,14 @@ public class Board
 		return board;
 	}
 
+	public boolean[][] getStateArray ()
+	{
+		boolean[][] state = new boolean[size][size];
+		for ( Coordinate coordinate : aliveCells )
+		{
+			state[coordinate.getX()][coordinate.getY()] = true;
+		}
+		return state;
+	}
+
 }

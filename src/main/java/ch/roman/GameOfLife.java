@@ -13,14 +13,14 @@ public class GameOfLife implements Runnable
 {
 	private final int size;
 	private final BlockingQueue<Board> guiQueue;
-	private GameOfLifeGUI gui;
 	private final Board initialBoard;
 	private final AtomicBoolean running = new AtomicBoolean( false );
+	private GameOfLifeGUI gui;
 
 	public GameOfLife ( int size )
 	{
 		this.size = size;
-		this.guiQueue = new LinkedBlockingQueue<>();
+		this.guiQueue = new LinkedBlockingQueue<>( 10 );
 		this.initialBoard = Board.ofRandom( size );
 	}
 
@@ -34,7 +34,7 @@ public class GameOfLife implements Runnable
 	{
 		running.set( true );
 
-		BlockingQueue<Board> futureBoards = new LinkedBlockingQueue<>(10);
+		BlockingQueue<Board> futureBoards = new LinkedBlockingQueue<>( 10 );
 		BoardPopulationWorker boardPopulationWorker = new BoardPopulationWorker( initialBoard, futureBoards, size, 8 );
 		new Thread( boardPopulationWorker ).start();
 
@@ -43,8 +43,8 @@ public class GameOfLife implements Runnable
 			try
 			{
 				var took = futureBoards.take();
-				log.info( "Took board with generation: " + took.getGeneration() );
-				guiQueue.offer( took );
+				//log.info( "Took board with generation: " + took.getGeneration() );
+				guiQueue.put( took );
 			}
 			catch ( InterruptedException e )
 			{
@@ -54,10 +54,10 @@ public class GameOfLife implements Runnable
 			// Repaint the GUI
 			if ( gui != null )
 			{
-				Util.sleep( 5 );
+				//Util.sleep( 16 );
 				//SwingUtilities.invokeLater( gui::repaint );
 				SwingUtilities.invokeLater( gui::printBoard );
-				log.info( "Repaint the GUI" );
+				//log.info( "Repaint the GUI" );
 			}
 		}
 	}

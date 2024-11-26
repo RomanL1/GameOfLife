@@ -1,88 +1,56 @@
 package ch.roman;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SmartCell
 {
+	private static final int[][] NEIGHBOR_OFFSETS = {
+			{ -1, -1 }, { -1, 0 }, { -1, 1 },
+			{ 0, -1 }, { 0, 1 },
+			{ 1, -1 }, { 1, 0 }, { 1, 1 }
+	};
 	private final int x;
 	private final int y;
-	private final List<Cell> neighbours;
 	private boolean isAlive;
 	private short aliveNeighbours;
 
-	private SmartCell ( int x, int y, boolean isAlive )
+	public SmartCell ( int x, int y, boolean isAlive )
 	{
 		this.x = x;
 		this.y = y;
 		this.isAlive = isAlive;
-		this.neighbours = new ArrayList<>();
 	}
 
-	public static SmartCell from ( int _x, int _y, Board board )
+	public void smartUpdate ( boolean[][] currentState, int size )
 	{
-		SmartCell smartCell = new SmartCell( _x, _y, board.isCellAlive( _x, _y ) );
-		for ( int x = _x - 1; x <= _x + 1; x++ )
+		isAlive = currentState[x][y];
+		int count = 0;
+		for ( int[] offset : NEIGHBOR_OFFSETS )
 		{
-			for ( int y = _y - 1; y <= _y + 1; y++ )
+			int nx = x + offset[0];
+			int ny = y + offset[1];
+			if ( nx >= 0 && ny >= 0 && nx < size && ny < size && currentState[nx][ny] )
 			{
-				if ( x == _x && y == _y )
-				{
-					continue;
-				}
-				if ( x < 0 || y < 0 || x >= board.getSize() || y >= board.getSize() )
-				{
-					continue;
-				}
-				smartCell.neighbours.add( Cell.of( x, y, board.isCellAlive( x, y ) ) );
+				count++;
 			}
 		}
-		smartCell.aliveNeighbours = (short) smartCell.neighbours.stream().filter( Cell::isAlive ).count();
-		return smartCell;
+		aliveNeighbours = (short) count;
 	}
 
-	//Any live cell with fewer than two live neighbours dies, as if by underpopulation.
-	public boolean isLiveAndHasLessThanTwoLiveNeighbours ()
+	public CellPopulationEvent applyRules ()
 	{
-		return isAlive && aliveNeighbours < 2;
-	}
-
-	//Any live cell with two or three live neighbours lives on to the next generation.
-	public boolean isLiveAndHasTwoOrThreeLiveNeighbours ()
-	{
-		return isAlive && ( aliveNeighbours == 2 || aliveNeighbours == 3 );
-	}
-
-	//Any live cell with more than three live neighbours dies, as if by overpopulation.
-	public boolean isLiveAndHasMoreThanThreeLiveNeighbours ()
-	{
-		return isAlive && aliveNeighbours > 3;
-	}
-
-	//Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-	public boolean isDeadAndHasExactlyThreeLiveNeighbours ()
-	{
-		return !isAlive && aliveNeighbours == 3;
-	}
-
-	public int x ()
-	{
-		return x;
-	}
-
-	public int y ()
-	{
-		return y;
-	}
-
-	public void smartUpdate ( Board board )
-	{
-		for ( Cell cell : neighbours )
+		boolean nextState = isAlive;
+		if ( isAlive && ( aliveNeighbours < 2 || aliveNeighbours > 3 ) )
 		{
-			cell.setAlive( board.isCellAlive( cell.x(), cell.y() ) );
+			nextState = false;
 		}
-		this.isAlive = board.isCellAlive( x, y );
-		this.aliveNeighbours = (short) this.neighbours.stream().filter( Cell::isAlive ).count();
-	}
+		else if ( !isAlive && aliveNeighbours == 3 )
+		{
+			nextState = true;
+		}
 
+		if ( nextState != isAlive )
+		{
+			return new CellPopulationEvent( x, y, nextState );
+		}
+		return null;
+	}
 }
