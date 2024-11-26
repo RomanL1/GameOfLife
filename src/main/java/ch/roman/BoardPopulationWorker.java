@@ -75,6 +75,7 @@ public class BoardPopulationWorker implements Runnable
 			try
 			{
 				futureBoards.put( nextBoard );
+				//log.info( "Generated board with generation: " + nextBoard.getGeneration() );
 			}
 			catch ( InterruptedException e )
 			{

@@ -18,18 +18,20 @@ public class GameOfLifeApp
 		GameOfLife gameOfLife = new GameOfLife( size );
 
 		// Create the GUI with the game board
-		GameOfLifeGUI panel = new GameOfLifeGUI( gameOfLife, size, scale );
+		GameOfLifeGUI gui = new GameOfLifeGUI( gameOfLife, size, scale );
 
 		// Set the GUI in GameOfLife
-		gameOfLife.setGUI( panel );
+		gameOfLife.setGUI( gui );
 
 		JFrame frame = new JFrame( "Game of Life" );
 		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-		frame.add( panel );
+		frame.add( gui );
 		frame.pack();
 		frame.setLocationRelativeTo( null ); // Center the frame
 		frame.setVisible( true );
 		frame.setResizable( false );
+		//print first board
+		SwingUtilities.invokeLater( gui::printBoard );
 
 		AtomicBoolean started = new AtomicBoolean( false );
 		//		Util.sleep( 1000 );
@@ -39,14 +41,36 @@ public class GameOfLifeApp
 			@Override
 			public void keyTyped ( KeyEvent e )
 			{
+
 				if ( e.getKeyChar() == ' ' )
 				{
 					if ( !started.get() )
 					{
 						started.set( true );
 						new Thread( gameOfLife ).start();
-
+						return;
 					}
+					gameOfLife.triggerNext();
+				}
+				else if ( e.getKeyChar() == '1' )
+				{
+					gameOfLife.modifyPauseInMs( -5 );
+				}
+				else if ( e.getKeyChar() == '2' )
+				{
+					gameOfLife.modifyPauseInMs( 5 );
+				}
+				else if ( e.getKeyChar() == '3' )
+				{
+					gameOfLife.resetPauseInMs();
+				}
+				else if ( e.getKeyChar() == '0' )
+				{
+					gameOfLife.zeroPauseInMs();
+				}
+				else if ( e.getExtendedKeyCode() == KeyEvent.VK_ESCAPE )
+				{
+					System.exit( 0 );
 				}
 			}
 

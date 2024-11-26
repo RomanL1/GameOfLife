@@ -3,6 +3,7 @@ package ch.roman;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.*;
 
@@ -15,6 +16,8 @@ public class GameOfLife implements Runnable
 	private final BlockingQueue<Board> guiQueue;
 	private final Board initialBoard;
 	private final AtomicBoolean running = new AtomicBoolean( false );
+	private final AtomicBoolean triggerNext = new AtomicBoolean( true );
+	private final AtomicInteger pauseInMs = new AtomicInteger( 33 );
 	private GameOfLifeGUI gui;
 
 	public GameOfLife ( int size )
@@ -54,7 +57,14 @@ public class GameOfLife implements Runnable
 			// Repaint the GUI
 			if ( gui != null )
 			{
-				//Util.sleep( 16 );
+				if ( pauseInMs.get() > 0 )
+				{
+					Util.sleep( pauseInMs.get() );
+				}
+				while ( !triggerNext.get() )
+				{
+				}
+				//triggerNext.set( false );
 				//SwingUtilities.invokeLater( gui::repaint );
 				SwingUtilities.invokeLater( gui::printBoard );
 				//log.info( "Repaint the GUI" );
@@ -71,6 +81,35 @@ public class GameOfLife implements Runnable
 		else
 		{
 			return initialBoard;
+		}
+	}
+
+	public void triggerNext ()
+	{
+		triggerNext.set( !triggerNext.get() );
+	}
+
+	public void modifyPauseInMs ( int by )
+	{
+		if ( pauseInMs.get() + by > 0 )
+		{
+			pauseInMs.addAndGet( by );
+		}
+	}
+
+	public void resetPauseInMs ()
+	{
+		if ( pauseInMs.get() > 0 )
+		{
+			pauseInMs.set( 33 );
+		}
+	}
+
+	public void zeroPauseInMs ()
+	{
+		if ( pauseInMs.get() > 0 )
+		{
+			this.pauseInMs.set( 0 );
 		}
 	}
 
